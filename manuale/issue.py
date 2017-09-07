@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 EXPIRATION_FORMAT = "%Y-%m-%d"
 
-def issue(server, account, domains, key_size, key_file=None, csr_file=None, output_path=None):
+def issue(server, account, domains, key_size, key_file=None, csr_file=None, output_path=None, returnObjOnly=False):
     if not output_path or output_path == '.':
         output_path = os.getcwd()
 
@@ -84,26 +84,42 @@ def issue(server, account, domains, key_size, key_file=None, csr_file=None, outp
         intermediate_path = os.path.join(output_path, domains[0] + '.intermediate.crt')
         key_path = os.path.join(output_path, domains[0] + '.pem')
 
+        certObj = {
+            "pem": '',
+            "crt": '',
+            "chain.crt": '',
+            "intermediate.crt": ''
+        }
+
         if certificate_key is not None:
-            with open(key_path, 'wb') as f:
-                os.chmod(key_path, 0o600)
-                f.write(export_private_key(certificate_key))
-                logger.info("Wrote key to {}".format(f.name))
-
-        with open(cert_path, 'wb') as f:
-            f.write(export_pem_certificate(certificate))
-            logger.info("Wrote certificate to {}".format(f.name))
-
-        with open(chain_path, 'wb') as f:
-            f.write(export_pem_certificate(certificate))
-            if result.intermediate:
-                f.write(export_pem_certificate(load_der_certificate(result.intermediate)))
-            logger.info("Wrote certificate with intermediate to {}".format(f.name))
-
+            certObj["pem"] = export_private_key(certificate_key)
+        certObj["chain.crt"] = export_pem_certificate(certificate)
+        certObj["crt"] = export_pem_certificate(certificate)
         if result.intermediate:
-            with open(intermediate_path, 'wb') as f:
-                f.write(export_pem_certificate(load_der_certificate(result.intermediate)))
-                logger.info("Wrote intermediate certificate to {}".format(f.name))
+            certObj["intermediate.crt"] = export_pem_certificate(load_der_certificate(result.intermediate))
+
+        if not returnObjOnly:
+            if certObj["pem"]:
+                with open(key_path, 'wb') as f:
+                    os.chmod(key_path, 0o600)
+                    f.write(certObj["pem"])
+                    logger.info("Wrote key to {}".format(f.name))
+
+            with open(cert_path, 'wb') as f:
+                f.write(certObj["crt"])
+                logger.info("Wrote certificate to {}".format(f.name))
+
+            with open(chain_path, 'wb') as f:
+                f.write(certObj["chain.crt"])
+                if certObj["intermediate.crt"]:
+                    f.write(certObj["intermediate.crt"])
+                logger.info("Wrote certificate with intermediate to {}".format(f.name))
+
+            if certObj["intermediate.crt"]:
+                with open(intermediate_path, 'wb') as f:
+                    f.write(certObj["intermediate.crt"])
+                    logger.info("Wrote intermediate certificate to {}".format(f.name))
+
     except IOError as e:
         logger.error("Failed to write certificate or key. Going to print them for you instead.")
         logger.error("")
@@ -113,3 +129,9 @@ def issue(server, account, domains, key_size, key_file=None, csr_file=None, outp
         for line in export_pem_certificate(certificate).decode('ascii').split('\n'):
             logger.error(line)
         raise ManualeError(e)
+
+    if returnObjOnly:
+        if certObj:
+            return certObj
+        else:
+            return None
