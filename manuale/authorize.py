@@ -82,7 +82,7 @@ def authorize(server, account, domains, method):
                 continue
 
             # Find the challenge and calculate values
-            challengeObj = get_challenge_obj(auth, method)
+            challengeObj = get_challenge_obj(account, auth, method)
             for key in challengeObj:
                 auth[key] = challengeObj[key]
 
