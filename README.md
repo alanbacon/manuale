@@ -105,6 +105,16 @@ Once that's done, you can finally get down to business. Run `manuale issue examp
 
 There's plenty of documentation inside each command. Run `manuale -h` for a list of commands and `manuale [command] -h` for details.
 
+## Python Renewal Function
+
+There is a python only (no command line interface) function available that can be be used to re-authorize all your domains and re-issue all certificates. It manages the uploading of DNS records and checks that they have propagated before attempting to authorize a domain.
+
+As an input it requires a lambda function that is capable of uploading records to your dns zone file. This is possible if your domain host can provide you with a API, [for example](http://doc.rpc.gandi.net/).
+
+It can be imported using: `from manuale.renew import dns_auth_and_renew`.
+
+See `renew.py` in the source directory for more information about how to use this function.
+
 ## See also
 
 * [Best practices for server configuration](https://wiki.mozilla.org/Security/Server_Side_TLS)
