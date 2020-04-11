@@ -84,7 +84,7 @@ def issue(server, account, domains, key_size, key_file=None, csr_file=None, outp
         intermediate_path = os.path.join(output_path, domains[0] + '.intermediate.crt')
         key_path = os.path.join(output_path, domains[0] + '.pem')
 
-        cert_obj = {
+        certObj = {
             "pem": '',
             "crt": '',
             "chain.crt": '',
@@ -92,32 +92,32 @@ def issue(server, account, domains, key_size, key_file=None, csr_file=None, outp
         }
 
         if certificate_key is not None:
-            cert_obj["pem"] = export_private_key(certificate_key)
-        cert_obj["chain.crt"] = export_pem_certificate(certificate)
-        cert_obj["crt"] = export_pem_certificate(certificate)
+            certObj["pem"] = export_private_key(certificate_key)
+        certObj["chain.crt"] = export_pem_certificate(certificate)
+        certObj["crt"] = export_pem_certificate(certificate)
         if result.intermediate:
-            cert_obj["intermediate.crt"] = export_pem_certificate(load_der_certificate(result.intermediate))
+            certObj["intermediate.crt"] = export_pem_certificate(load_der_certificate(result.intermediate))
 
         if not return_obj_only:
-            if cert_obj["pem"]:
+            if certObj["pem"]:
                 with open(key_path, 'wb') as f:
                     os.chmod(key_path, 0o600)
-                    f.write(cert_obj["pem"])
+                    f.write(certObj["pem"])
                     logger.info("Wrote key to {}".format(f.name))
 
             with open(cert_path, 'wb') as f:
-                f.write(cert_obj["crt"])
+                f.write(certObj["crt"])
                 logger.info("Wrote certificate to {}".format(f.name))
 
             with open(chain_path, 'wb') as f:
-                f.write(cert_obj["chain.crt"])
-                if cert_obj["intermediate.crt"]:
-                    f.write(cert_obj["intermediate.crt"])
+                f.write(certObj["chain.crt"])
+                if certObj["intermediate.crt"]:
+                    f.write(certObj["intermediate.crt"])
                 logger.info("Wrote certificate with intermediate to {}".format(f.name))
 
-            if cert_obj["intermediate.crt"]:
+            if certObj["intermediate.crt"]:
                 with open(intermediate_path, 'wb') as f:
-                    f.write(cert_obj["intermediate.crt"])
+                    f.write(certObj["intermediate.crt"])
                     logger.info("Wrote intermediate certificate to {}".format(f.name))
 
     except IOError as e:
@@ -130,7 +130,7 @@ def issue(server, account, domains, key_size, key_file=None, csr_file=None, outp
             logger.error(line)
         raise ManualeError(e)
 
-    if cert_obj:
-        return cert_obj
+    if certObj:
+        return certObj
     else:
         return None
