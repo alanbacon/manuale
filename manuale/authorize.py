@@ -15,25 +15,6 @@ from .helpers import confirm
 logger = logging.getLogger(__name__)
 
 
-def get_auth_obj(acme, domain):
-    authResource = acme.new_authorization(domain)
-    auth = authResource.contents
-    auth['uri'] = authResource.uri
-    return auth
-
-
-def get_challenge_obj(account, auth, method):
-    # Find the challenge and calculate values
-    thumbprint = generate_jwk_thumbprint(account.key)
-    challengeObj = {}
-    challengeObj['challenge'] = get_challenge(auth, method)
-    challengeObj['key_authorization'] = "{}.{}".format(challengeObj['challenge'].get('token'), thumbprint)
-    digest = hashlib.sha256()
-    digest.update(challengeObj['key_authorization'].encode('ascii'))
-    challengeObj['txt_record'] = jose_b64(digest.digest())
-    return challengeObj
-
-
 def get_challenge(auth, auth_type):
     try:
         return [ch for ch in auth.get('challenges', []) if ch.get('type') == auth_type][0]
@@ -68,13 +49,16 @@ def retrieve_verification(acme, domain, auth, method):
 def authorize(server, account, domains, method):
     method = method + '-01'
     acme = Acme(server, account)
+    thumbprint = generate_jwk_thumbprint(account.key)
 
     try:
         # Get pending authorizations for each domain
         authz = {}
         for domain in domains:
             logger.info("Requesting challenge for {}.".format(domain))
-            auth = get_auth_obj(acme, domain)
+            created = acme.new_authorization(domain)
+            auth = created.contents
+            auth['uri'] = created.uri
 
             # Check if domain is already authorized
             if auth.get('status') == 'valid':
@@ -82,9 +66,11 @@ def authorize(server, account, domains, method):
                 continue
 
             # Find the challenge and calculate values
-            challengeObj = get_challenge_obj(auth, method)
-            for key in challengeObj:
-                auth[key] = challengeObj[key]
+            auth['challenge'] = get_challenge(auth, method)
+            auth['key_authorization'] = "{}.{}".format(auth['challenge'].get('token'), thumbprint)
+            digest = hashlib.sha256()
+            digest.update(auth['key_authorization'].encode('ascii'))
+            auth['txt_record'] = jose_b64(digest.digest())
 
             authz[domain] = auth
 
