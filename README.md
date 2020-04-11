@@ -1,5 +1,7 @@
 # ManuaLE
 
+**⚠️ This project is deprecated. The ACMEv1 API will be shut down soon. ⚠️** Please find an [alternative client](https://letsencrypt.org/docs/client-options/).
+
 manuale is a fully manual [Let's Encrypt](https://letsencrypt.org)/[ACME](https://github.com/ietf-wg-acme/acme/) client for advanced users. It is intended to be used by a human in a manual workflow and contains no automation features whatsoever.
 
 ## Why?
@@ -71,7 +73,7 @@ Authorize one or more domains:
     $ manuale authorize example.com
     DNS verification required. Make sure these records are in place:
       _acme-challenge.example.com. IN TXT "(some random gibberish)"
-    Press enter to continue.
+    Press Enter to continue.
     ...
     1 domain(s) authorized. Let's Encrypt!
 
