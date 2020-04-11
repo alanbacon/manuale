@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 EXPIRATION_FORMAT = "%Y-%m-%d"
 
-def issue(server, account, domains, key_size, key_file=None, csr_file=None, output_path=None, return_obj_only=False):
+def issue(server, account, domains, key_size, key_file=None, csr_file=None, output_path=None, returnObjOnly=False):
     if not output_path or output_path == '.':
         output_path = os.getcwd()
 
@@ -98,7 +98,7 @@ def issue(server, account, domains, key_size, key_file=None, csr_file=None, outp
         if result.intermediate:
             certObj["intermediate.crt"] = export_pem_certificate(load_der_certificate(result.intermediate))
 
-        if not return_obj_only:
+        if not returnObjOnly:
             if certObj["pem"]:
                 with open(key_path, 'wb') as f:
                     os.chmod(key_path, 0o600)
@@ -130,7 +130,8 @@ def issue(server, account, domains, key_size, key_file=None, csr_file=None, outp
             logger.error(line)
         raise ManualeError(e)
 
-    if certObj:
-        return certObj
-    else:
-        return None
+    if returnObjOnly:
+        if certObj:
+            return certObj
+        else:
+            return None
