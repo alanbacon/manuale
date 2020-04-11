@@ -41,7 +41,6 @@ setup(
     install_requires=[
         'cryptography >= 1.0',
         'requests',
-        'dnspython'
     ],
 
     entry_points={
